@@ -1,0 +1,28 @@
+install.packages("rvest")
+install.packages("stringr")
+install.packages("httr")
+install.packages("tm")
+install.packages("qgraph")
+install.packages("xml2")
+url <- 'http://movie.daum.net/moviedb/grade?movieId=124806&type=netizen&page='
+#82년생 김지영 네티즌 평점
+library(rvest)
+library(httr)
+library(stringr)
+library(tm)
+library(qgraph)
+library(xml2)
+recent.reviews <- c()  #최근리뷰
+for(page in 1:5){    #1~5페이지
+  url <- paste(url, page, sep='')   #82년생 김지영 평점의 1~5페이지
+  htxt <- read_html(url)      #read_html이용하여 저장한 html을 htxt에 저장
+  comments <- html_nodes(htxt, 'div') %>% html_nodes('p')  # comment 가 있는 위치 찾아 들어가기 
+  reviews <- html_text(comments)  #리뷰의 text 추출
+  reviews <- repair_encoding(reviews, from = 'utf-8')  ## 인코딩 변경
+  if( length(reviews) == 0 ){ break } #리뷰가 없으면 제거
+  reviews <- str_trim(reviews)
+  reviews <- gsub("(\r)","",reviews) #\r 제거
+  recent.reviews <- c(recent.reviews, reviews)  
+  
+}
+recent.reviews #최근리뷰
