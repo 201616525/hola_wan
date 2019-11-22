@@ -1,3 +1,4 @@
+#82년생 김지영 네티즌 최근평점 목록 
 install.packages("rvest")
 install.packages("stringr")
 install.packages("httr")
