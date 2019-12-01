@@ -1,0 +1,11 @@
+#네이버 블로그에 데이터시각화를 검색했을 때 나오는 제목들 크롤링
+library(rvest)
+blog <- lapply(1:2, function(page){
+  url <- paste0("https://search.naver.com/search.naver?where=post&sm=tab_jum&query=%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%8B%9C%EA%B0%81%ED%99%94")
+  table  <- read_html(url)
+  title <- html_nodes(table, xpath='//*[@class="type01"]/li/dl/dt/a')
+  title <- html_text(title)
+  data.frame(title)
+})
+blog <- do.call(rbind, blog)
+blog
