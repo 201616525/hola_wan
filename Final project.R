@@ -1,0 +1,92 @@
+install.packages("rvest") 
+install.packages("lubridate")
+install.packages("ggthemes")
+install.packages("extrafont")
+install.packages('wordcloud2')
+install.packages("tidyverse")
+library('wordcloud2')
+library(lubridate)
+library(ggthemes)
+library(extrafont)
+library(rvest)
+library(tidyverse)
+
+url='https://www.melon.com/chart/index.htm' #멜론차트불러오기
+
+html <- read_html(url) 
+
+songtitle <- html %>% html_nodes('.ellipsis.rank01') %>% html_text() #top 100 노래 추출
+
+
+songtitle <-  gsub("(\r)(\n)(\t)*", "", songtitle) #r태그, t태그, n태그 제거
+
+singer <-html %>% html_nodes('.ellipsis.rank02')%>%html_text() #top 100 가수 추출
+
+singer <-  gsub("(\r)(\n)(\t)*", "", singer) #r태그, t태그,n태그 제거
+
+singer <- substring(singer,1,nchar(singer)/2) #가수가 두 번 추출되어 한 번만 추출
+
+album <- html%>%html_nodes('.ellipsis.rank03')%>% html_text() # top 100 앨범 추출
+
+album <-  gsub("(\r)(\n)(\t)*", "", album) #r태그, t태그,n태그 제거 
+
+melontop100 <- data.frame(Song=songtitle, Singer=singer, Album=album) #노래, 가수, 앨범 데이터프레임
+
+melontop100 #top 100 노래, 가수, 앨범
+
+folder <- '/Users/gimdong-wan/Desktop/김동완 수업자료/데이터시각화' #생성할 폴더 이름
+
+if(!dir.exists(folder)) dir.create(folder) #폴더가 없으면 생성
+
+setwd(folder) #working directory 변경
+
+date <- Sys.Date() #현재 날짜 
+
+h <- hour(Sys.time()) #현재 시간 
+
+now <- paste(date,h) #복사
+
+now.folder <- paste(folder,now,sep='/') #현재시간 폴더 이름 
+
+if(!dir.exists(now.folder)) dir.create(now.folder) #폴더가 없다면 생성
+
+now.file <- paste(now.folder,'top100.csv',sep="/") #저장할 경로와 파일 이름
+
+write.csv(melontop100,file=now.file) #top100 노래, 가수, 앨범 파일로 저장
+
+#데이터 시각화
+popular <- table(melontop100$Singer) #가장 많이 등장한 가수 추출 
+
+popular.1 <- sort(popular) #오름순서대로 정렬
+
+popular.2 <- popular.1[popular.1>1] #한 번만 언급된 가수가 많아 두 번 이상 언급된 가수만 추출
+
+popular.2#확인
+
+popular <- data.frame(popular.2) #데이터 프레임으로 변환
+
+singercloud <- wordcloud2(data=popular,size=0.6,color="random-dark",rotateRatio=0.2) #워드클라우드로 시각화 
+
+singercloud
+
+topalbum <- table(melontop100$Album) #top100에서 앨범 추출
+topalbum.1 <- sort(topalbum) #오름차순으로 정렬 
+
+topalbum.2 <- topalbum.1[topalbum.1>1] #두번 이상 등장한 앨범
+
+topalbum.2 <- data.frame(topalbum.2) #데이터프레임으로 만들기
+
+albumcloud <- wordcloud2(data=topalbum,size=0.2,color="black",rotateRatio = 0.7) #워드크라우드로 시각화
+
+albumcloud
+
+theme_set(theme_gray(base_family='NanumGothic')) #한글깨짐 문제 나눔고딕으로 해결
+
+ggplot(filter(popular),
+       aes(x=Var1,    
+           y=Freq,))+
+  
+  geom_point()      # ggplot2를 이용해 가수들의 산점도 그리기 
+
+ggplot(topalbum.2, aes(x=Var1, y=Freq))+ 
+  geom_bar(stat='identity')  #ggplot2를 이용해 앨범들을 막대그래프로 표현
